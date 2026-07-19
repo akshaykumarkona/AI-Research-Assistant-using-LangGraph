@@ -3,6 +3,14 @@
 A Hybrid Retrieval-Augmented Generation (RAG) chatbot built using **LangGraph**, **LangChain**, **ChromaDB**, **Google Gemini**, **Wikipedia**, and **Google Search**. The chatbot was developed to provide researchers, students, and the general public with an intelligent assistant capable of answering questions about a research laboratory, its members, ongoing research, and bee-related topics.
 
 ---
+## 🚀 Live Application
+
+🌐 **Try the deployed application:**  
+**https://ai-research-chatbot-using-langgraph.streamlit.app/**
+
+---
+
+
 ## 🎥 Demo
 
 <p align="center">
