@@ -33,6 +33,8 @@ SERPAPI_KEY=""
 
 
 
+
+
 if not GOOGLE_API_KEY:
     st.error("Missing GOOGLE_API_KEY environment variable!")
     st.stop()
