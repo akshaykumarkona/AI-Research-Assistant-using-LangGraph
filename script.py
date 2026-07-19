@@ -1,8 +1,9 @@
 import streamlit as st
 import os
-import json
+import html
 import re
 import requests
+from textwrap import dedent
 from urllib.parse import quote
 from typing import TypedDict, List, Any
 
@@ -24,11 +25,13 @@ import google.generativeai as genai
 # GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 # GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-GOOGLE_API_KEY="" #""
+GOOGLE_API_KEY=""
 GOOGLE_CSE_ID=""
 
 # SERPAPI_KEY = os.getenv("SERPAPI_API_KEY")
 SERPAPI_KEY=""
+
+
 
 if not GOOGLE_API_KEY:
     st.error("Missing GOOGLE_API_KEY environment variable!")
@@ -39,7 +42,7 @@ if not SERPAPI_KEY:
     st.stop()
 
 genai.configure(api_key=GOOGLE_API_KEY)
-gemini = genai.GenerativeModel("gemini-2.5-flash")
+gemini = genai.GenerativeModel("gemini-3.1-flash-lite")
 
 
 # ============================================================
@@ -574,55 +577,1379 @@ graph = workflow.compile()
 # STREAMLIT UI
 # ============================================================
 
-st.set_page_config(page_title="Hybrid RAG Chatbot", layout="wide")
-st.title("Hybrid RAG Chatbot")
+
+# ============================================================
+# PREMIUM STREAMLIT UI — BEEMACHINE AI
+# ============================================================
+
+import html
+import time
+from typing import Generator
+
+import streamlit as st
 
 
-# Initialize conversation
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="BeeMachine AI",
+    page_icon="🐝",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+
+st.html(
+    """
+    <style>
+        /* ==================================================
+           GLOBAL
+        ================================================== */
+
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.88);
+            --bg-card-solid: #ffffff;
+            --text-main: #172033;
+            --text-secondary: #64748b;
+            --border: rgba(226, 232, 240, 0.92);
+            --amber: #f59e0b;
+            --amber-dark: #b45309;
+            --amber-soft: #fff7df;
+            --green: #16a34a;
+            --blue: #2563eb;
+            --purple: #7c3aed;
+            --red: #dc2626;
+            --shadow-sm: 0 7px 24px rgba(15, 23, 42, 0.055);
+            --shadow-lg: 0 22px 60px rgba(15, 23, 42, 0.10);
+        }
+
+        html,
+        body,
+        [class*="css"] {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        .stApp {
+            color: var(--text-main);
+            background:
+                radial-gradient(
+                    circle at 90% 3%,
+                    rgba(245, 158, 11, 0.13),
+                    transparent 25%
+                ),
+                radial-gradient(
+                    circle at 18% 75%,
+                    rgba(59, 130, 246, 0.05),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    180deg,
+                    #fffdf8 0%,
+                    #ffffff 35%,
+                    #f8fafc 100%
+                );
+        }
+
+        .block-container {
+            max-width: 1240px;
+            padding-top: 1.45rem;
+            padding-bottom: 8rem;
+        }
+
+        #MainMenu {
+            visibility: hidden;
+        }
+
+        footer {
+            visibility: hidden;
+        }
+
+        header[data-testid="stHeader"] {
+            background: transparent;
+        }
+
+        /* ==================================================
+           TOP NAV
+        ================================================== */
+
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.65rem 0.1rem;
+        }
+
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            display: flex;
+            width: 2.65rem;
+            height: 2.65rem;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(245, 158, 11, 0.26);
+            border-radius: 14px;
+            background: linear-gradient(145deg, #fff8df, #ffffff);
+            box-shadow: var(--shadow-sm);
+            font-size: 1.35rem;
+        }
+
+        .brand-title {
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 850;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            margin-top: 0.05rem;
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            padding: 0.42rem 0.7rem;
+            border: 1px solid #bbf7d0;
+            border-radius: 999px;
+            background: rgba(240, 253, 244, 0.88);
+            color: #15803d;
+            font-size: 0.74rem;
+            font-weight: 750;
+        }
+
+        .status-dot {
+            width: 0.48rem;
+            height: 0.48rem;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.11);
+        }
+
+        /* ==================================================
+           HERO
+        ================================================== */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            padding: 2.35rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.97),
+                    rgba(255, 249, 229, 0.95)
+                );
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 330px;
+            height: 330px;
+            right: -115px;
+            top: -145px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.13);
+        }
+
+        .hero::after {
+            content: "🐝";
+            position: absolute;
+            right: 2.8rem;
+            top: 50%;
+            transform: translateY(-50%) rotate(-9deg);
+            font-size: 7rem;
+            opacity: 0.10;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 850px;
+        }
+
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-bottom: 1rem;
+            padding: 0.42rem 0.78rem;
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            border-radius: 999px;
+            background: rgba(254, 243, 199, 0.72);
+            color: #92400e;
+            font-size: 0.76rem;
+            font-weight: 850;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        .hero-title {
+            max-width: 800px;
+            margin: 0;
+            color: var(--text-main);
+            font-size: clamp(2.25rem, 5vw, 4rem);
+            font-weight: 900;
+            line-height: 1.02;
+            letter-spacing: -0.052em;
+        }
+
+        .hero-title span {
+            color: var(--amber-dark);
+        }
+
+        .hero-subtitle {
+            max-width: 790px;
+            margin: 1rem 0 0;
+            color: #5e6b7c;
+            font-size: 1.03rem;
+            line-height: 1.72;
+        }
+
+        .hero-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.56rem;
+            margin-top: 1.3rem;
+        }
+
+        .capability-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.72rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 720;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+        }
+
+        /* ==================================================
+           METRIC CARDS
+        ================================================== */
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .metric-card {
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 17px;
+            background: rgba(255, 255, 255, 0.80);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(18px);
+        }
+
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.67rem;
+            font-weight: 800;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            margin-top: 0.26rem;
+            color: #263247;
+            font-size: 0.9rem;
+            font-weight: 820;
+        }
+
+        /* ==================================================
+           SECTION HEADERS
+        ================================================== */
+
+        .section-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1.35rem 0 0.72rem;
+        }
+
+        .section-title {
+            color: #475569;
+            font-size: 0.76rem;
+            font-weight: 850;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .section-caption {
+            color: #94a3b8;
+            font-size: 0.72rem;
+        }
+
+        /* ==================================================
+           QUICK ACTIONS
+        ================================================== */
+
+        .stButton > button {
+            min-height: 3rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.94);
+            color: #334155;
+            font-weight: 720;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.04);
+            transition:
+                transform 0.2s ease,
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            border-color: #f59e0b;
+            color: #b45309;
+            box-shadow: 0 10px 22px rgba(245, 158, 11, 0.13);
+        }
+
+        /* ==================================================
+           EMPTY STATE
+        ================================================== */
+
+        .empty-panel {
+            padding: 2rem 1.5rem;
+            border: 1px dashed #d5dce7;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.68);
+            text-align: center;
+            backdrop-filter: blur(16px);
+        }
+
+        .empty-icon {
+            margin-bottom: 0.6rem;
+            font-size: 2.6rem;
+        }
+
+        .empty-title {
+            color: #29354a;
+            font-size: 1.12rem;
+            font-weight: 820;
+        }
+
+        .empty-text {
+            max-width: 600px;
+            margin: 0.38rem auto 0;
+            color: #718096;
+            font-size: 0.89rem;
+            line-height: 1.65;
+        }
+
+        /* ==================================================
+           CHAT
+        ================================================== */
+
+        [data-testid="stChatMessage"] {
+            padding: 1rem 1.1rem;
+            margin-bottom: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 19px;
+            background: rgba(255, 255, 255, 0.93);
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(18px);
+        }
+
+        [data-testid="stChatMessage"]:has(
+            [data-testid="chatAvatarIcon-user"]
+        ) {
+            margin-left: 9%;
+            border-color: rgba(245, 158, 11, 0.22);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255, 251, 235, 0.98),
+                    rgba(255, 255, 255, 0.98)
+                );
+        }
+
+        [data-testid="stChatMessage"]:has(
+            [data-testid="chatAvatarIcon-assistant"]
+        ) {
+            margin-right: 4%;
+        }
+
+        [data-testid="stChatMessageContent"] {
+            color: #29354a;
+            font-size: 0.98rem;
+            line-height: 1.73;
+        }
+
+        [data-testid="stChatMessageContent"] p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* ==================================================
+           ANSWER METADATA
+        ================================================== */
+
+        .answer-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #edf0f4;
+        }
+
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            padding: 0.3rem 0.58rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.69rem;
+            font-weight: 720;
+        }
+
+        .source-small-db {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .source-large-db {
+            border-color: #ddd6fe;
+            background: #f5f3ff;
+            color: #6d28d9;
+        }
+
+        .source-wiki {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .source-google {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .source-greeting {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .source-error {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        /* ==================================================
+           RETRIEVAL PIPELINE
+        ================================================== */
+
+        .pipeline-card {
+            margin-top: 0.75rem;
+            padding: 0.85rem;
+            border: 1px solid #e7ebf0;
+            border-radius: 15px;
+            background: rgba(248, 250, 252, 0.82);
+        }
+
+        .pipeline-heading {
+            margin-bottom: 0.6rem;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 850;
+            letter-spacing: 0.065em;
+            text-transform: uppercase;
+        }
+
+        .pipeline-track {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .pipeline-node {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            padding: 0.31rem 0.57rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            background: white;
+            color: #94a3b8;
+            font-size: 0.68rem;
+            font-weight: 720;
+        }
+
+        .pipeline-node.active {
+            border-color: #fcd34d;
+            background: #fffbeb;
+            color: #a16207;
+        }
+
+        .pipeline-node.success {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .pipeline-arrow {
+            color: #cbd5e1;
+            font-size: 0.7rem;
+        }
+
+        /* ==================================================
+           CHAT INPUT
+        ================================================== */
+
+        [data-testid="stChatInput"] {
+            border: 1px solid #d7dee8;
+            border-radius: 19px;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 14px 42px rgba(15, 23, 42, 0.14);
+        }
+
+        [data-testid="stChatInput"] textarea {
+            min-height: 3.5rem;
+            color: #273244;
+            font-size: 0.96rem;
+        }
+
+        [data-testid="stChatInput"] button {
+            border-radius: 13px;
+            background: #f59e0b;
+            color: white;
+        }
+
+        /* ==================================================
+           SIDEBAR
+        ================================================== */
+
+        [data-testid="stSidebar"] {
+            border-right: 1px solid #edf0f4;
+            background:
+                linear-gradient(
+                    180deg,
+                    #fff9eb 0%,
+                    #ffffff 38%,
+                    #f8fafc 100%
+                );
+        }
+
+        [data-testid="stSidebar"] .block-container {
+            padding-top: 1.25rem;
+        }
+
+        .sidebar-profile {
+            margin-bottom: 1.1rem;
+            padding: 1rem;
+            border: 1px solid #fde7b0;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.91);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-profile-title {
+            color: #1e293b;
+            font-size: 0.98rem;
+            font-weight: 850;
+        }
+
+        .sidebar-profile-text {
+            margin-top: 0.38rem;
+            color: #64748b;
+            font-size: 0.76rem;
+            line-height: 1.55;
+        }
+
+        .sidebar-section-title {
+            margin: 1rem 0 0.55rem;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 850;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-source {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            margin-bottom: 0.43rem;
+            padding: 0.63rem;
+            border: 1px solid #edf0f4;
+            border-radius: 13px;
+            background: rgba(255, 255, 255, 0.87);
+        }
+
+        .sidebar-source-icon {
+            display: flex;
+            min-width: 1.7rem;
+            height: 1.7rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            background: #fff7df;
+            font-size: 0.83rem;
+        }
+
+        .sidebar-source-title {
+            color: #334155;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .sidebar-source-text {
+            margin-top: 0.1rem;
+            color: #8491a3;
+            font-size: 0.66rem;
+            line-height: 1.35;
+        }
+
+        /* ==================================================
+           RESPONSIVE
+        ================================================== */
+
+        @media (max-width: 900px) {
+            .metric-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+            .block-container {
+                padding-top: 0.8rem;
+                padding-left: 0.8rem;
+                padding-right: 0.8rem;
+            }
+
+            .hero {
+                padding: 1.55rem;
+                border-radius: 21px;
+            }
+
+            .hero::after {
+                display: none;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            [data-testid="stChatMessage"] {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            .status-pill {
+                display: none;
+            }
+        }
+    </style>
+    """
+)
+
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def stream_text(text: str) -> Generator[str, None, None]:
+    """
+    Stream a response in small word groups for a ChatGPT-like effect.
+    """
+
+    words = text.split()
+
+    for index, word in enumerate(words):
+        suffix = " " if index < len(words) - 1 else ""
+        yield word + suffix
+        time.sleep(0.012)
+
+
+def get_source_details(source: str) -> tuple[str, str, str]:
+    """
+    Convert graph context into a readable source label.
+    """
+
+    normalized = str(source or "").strip().lower()
+
+    if normalized == "greeting":
+        return "Greeting Handler", "👋", "source-greeting"
+
+    if (
+        normalized == "db1"
+        or "small_db" in normalized
+        or "small db" in normalized
+        or "lab knowledge" in normalized
+    ):
+        return "Lab Knowledge Base", "🏛️", "source-small-db"
+
+    if (
+        normalized == "db2"
+        or "large_embeddings" in normalized
+        or "large db" in normalized
+        or "entomology knowledge" in normalized
+    ):
+        return "Entomology Knowledge Base", "📚", "source-large-db"
+
+    if "wiki" in normalized:
+        return "Wikipedia", "🌐", "source-wiki"
+
+    if "google" in normalized or "serp" in normalized:
+        return "Google Search", "🔎", "source-google"
+
+    if "error" in normalized:
+        return "System Error", "⚠️", "source-error"
+
+    return str(source or "Hybrid RAG"), "🐝", ""
+
+
+def get_pipeline_states(source: str) -> dict[str, str]:
+    """
+    Infer the visible retrieval path from the final source.
+
+    This does not claim that every node returned content. It shows the
+    sequence evaluated before the selected source produced the answer.
+    """
+
+    normalized = str(source or "").strip().lower()
+
+    states = {
+        "db1": "",
+        "db2": "",
+        "wiki": "",
+        "google": "",
+        "gemini": "success",
+    }
+
+    if normalized == "greeting":
+        return states
+
+    if normalized == "db1" or "small" in normalized or "lab knowledge" in normalized:
+        states["db1"] = "success"
+
+    elif normalized == "db2" or "large" in normalized or "entomology" in normalized:
+        states["db1"] = "active"
+        states["db2"] = "success"
+
+    elif "wiki" in normalized:
+        states["db1"] = "active"
+        states["db2"] = "active"
+        states["wiki"] = "success"
+
+    elif "google" in normalized or "serp" in normalized:
+        states["db1"] = "active"
+        states["db2"] = "active"
+        states["wiki"] = "active"
+        states["google"] = "success"
+
+    return states
+
+
+def render_answer_metadata(
+    source: str,
+    elapsed_seconds: float | None = None,
+) -> None:
+    """
+    Render source, model, and response-time metadata.
+    """
+
+    label, icon, css_class = get_source_details(source)
+
+    safe_label = html.escape(label)
+    safe_icon = html.escape(icon)
+
+    response_time_html = ""
+
+    if elapsed_seconds is not None:
+        response_time_html = (
+            f'<span class="meta-item">⏱️ {elapsed_seconds:.2f} sec</span>'
+        )
+
+    st.html(
+        f"""
+        <div class="answer-meta">
+            <span class="meta-item {css_class}">
+                {safe_icon} {safe_label}
+            </span>
+            <span class="meta-item">🧠 Gemini</span>
+            {response_time_html}
+        </div>
+        """
+    )
+
+
+def render_pipeline(source: str) -> None:
+    """
+    Display the retrieval path associated with the final answer source.
+    """
+
+    if str(source).lower() == "greeting":
+        return
+
+    states = get_pipeline_states(source)
+
+    nodes = [
+        ("db1", "🏛️ Lab KB"),
+        ("db2", "📚 Scientific KB"),
+        ("wiki", "🌐 Wikipedia"),
+        ("google", "🔎 Google"),
+        ("gemini", "🧠 Gemini"),
+    ]
+
+    rendered_nodes = []
+
+    for index, (key, label) in enumerate(nodes):
+        css_state = states.get(key, "")
+
+        rendered_nodes.append(
+            f'<span class="pipeline-node {css_state}">{label}</span>'
+        )
+
+        if index < len(nodes) - 1:
+            rendered_nodes.append(
+                '<span class="pipeline-arrow">→</span>'
+            )
+
+    st.html(
+        f"""
+        <div class="pipeline-card">
+            <div class="pipeline-heading">
+                Retrieval path
+            </div>
+            <div class="pipeline-track">
+                {''.join(rendered_nodes)}
+            </div>
+        </div>
+        """
+    )
+
+
+def add_user_message(content: str) -> None:
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": content,
+        }
+    )
+
+
+def add_assistant_message(
+    content: str,
+    source: str,
+    elapsed_seconds: float | None = None,
+) -> None:
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": content,
+            "source": source,
+            "elapsed_seconds": elapsed_seconds,
+        }
+    )
+
+
+def clear_conversation() -> None:
+    st.session_state.messages = []
+
+
+# ============================================================
+# SESSION STATE
+# ============================================================
+
 if "messages" not in st.session_state:
-    st.session_state["messages"] = []
+    st.session_state.messages = []
 
 
-# Display conversation
-for msg in st.session_state["messages"]:
-    with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+with st.sidebar:
+    st.html(
+        """
+        <div class="sidebar-profile">
+            <div class="sidebar-profile-title">
+                🐝 BeeMachine AI
+            </div>
+            <div class="sidebar-profile-text">
+                A hybrid RAG assistant for laboratory information,
+                bee research, pollinator science, entomology, and
+                agricultural knowledge.
+            </div>
+        </div>
+        """
+    )
+
+    st.html(
+        '<div class="sidebar-section-title">Knowledge network</div>'
+    )
+
+    sidebar_sources = [
+        (
+            "🏛️",
+            "Lab Knowledge Base",
+            "People, projects, laboratory information, and BeeMachine.",
+        ),
+        (
+            "📚",
+            "Scientific Knowledge Base",
+            "Entomology and agriculture books and websites.",
+        ),
+        (
+            "🌐",
+            "Wikipedia",
+            "General reference fallback.",
+        ),
+        (
+            "🔎",
+            "Google Search",
+            "External web fallback through SerpAPI.",
+        ),
+        (
+            "🧠",
+            "Gemini",
+            "Synthesizes the final answer from retrieved context.",
+        ),
+    ]
+
+    for icon, title, description in sidebar_sources:
+        st.html(
+            f"""
+            <div class="sidebar-source">
+                <div class="sidebar-source-icon">
+                    {html.escape(icon)}
+                </div>
+                <div>
+                    <div class="sidebar-source-title">
+                        {html.escape(title)}
+                    </div>
+                    <div class="sidebar-source-text">
+                        {html.escape(description)}
+                    </div>
+                </div>
+            </div>
+            """
+        )
+
+    st.divider()
+
+    st.html(
+        '<div class="sidebar-section-title">Conversation</div>'
+    )
+
+    st.caption(
+        f"{len(st.session_state.messages)} message(s) in this session"
+    )
+
+    if st.button(
+        "✨ New chat",
+        use_container_width=True,
+    ):
+        clear_conversation()
+        st.rerun()
+
+    if st.button(
+        "🗑️ Clear conversation",
+        use_container_width=True,
+    ):
+        clear_conversation()
+        st.rerun()
+
+    st.divider()
+
+    st.caption(
+        "Responses are generated from retrieved context. "
+        "Verify important scientific conclusions using primary sources."
+    )
 
 
-# User input
-user_query = st.chat_input("Ask something...")
+# ============================================================
+# TOP NAVIGATION
+# ============================================================
+
+st.html(
+    """
+    <div class="top-nav">
+        <div class="brand-wrap">
+            <div class="brand-icon">🐝</div>
+            <div>
+                <div class="brand-title">BeeMachine AI</div>
+                <div class="brand-subtitle">
+                    Scientific research assistant
+                </div>
+            </div>
+        </div>
+
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            Knowledge network online
+        </div>
+    </div>
+    """
+)
+
+
+# ============================================================
+# HERO
+# ============================================================
+
+st.html(
+    """
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-kicker">
+                🐝 AI Research Assistant
+            </div>
+
+            <h1 class="hero-title">
+                Explore bee research with
+                <span>intelligent retrieval</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                Ask questions about BeeMachine, the laboratory,
+                researchers, ongoing projects, bees, pollinators,
+                entomology, and agricultural science. The assistant
+                searches trusted domain knowledge first and uses
+                external sources only when necessary.
+            </p>
+
+            <div class="hero-capabilities">
+                <span class="capability-chip">⚡ LangGraph</span>
+                <span class="capability-chip">🧩 Hybrid RAG</span>
+                <span class="capability-chip">🗄️ ChromaDB</span>
+                <span class="capability-chip">🧠 Gemini</span>
+                <span class="capability-chip">🌐 Multi-source retrieval</span>
+            </div>
+        </div>
+    </div>
+    """
+)
+
+
+# ============================================================
+# SYSTEM METRICS
+# ============================================================
+
+st.html(
+    """
+    <div class="metric-grid">
+        <div class="metric-card">
+            <div class="metric-label">Primary source</div>
+            <div class="metric-value">Lab Knowledge Base</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Scientific corpus</div>
+            <div class="metric-value">300K+ text lines</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Orchestration</div>
+            <div class="metric-value">LangGraph Workflow</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">Generation model</div>
+            <div class="metric-value">Gemini</div>
+        </div>
+    </div>
+    """
+)
+
+
+# ============================================================
+# QUICK ACTIONS
+# ============================================================
+
+selected_suggestion = None
+
+if not st.session_state.messages:
+    st.html(
+        """
+        <div class="empty-panel">
+            <div class="empty-icon">🍯</div>
+            <div class="empty-title">
+                Begin exploring the BeeMachine knowledge network
+            </div>
+            <div class="empty-text">
+                Choose a suggested topic below or enter your own
+                research question in the chat input.
+            </div>
+        </div>
+        """
+    )
+
+    st.html(
+        """
+        <div class="section-row">
+            <div class="section-title">Quick actions</div>
+            <div class="section-caption">
+                Select a topic to begin
+            </div>
+        </div>
+        """
+    )
+
+    quick_actions = [
+        ("🐝 What is BeeMachine?", "What is BeeMachine and how does it work?"),
+        (
+            "👩‍🔬 Meet the lab",
+            "Who are the researchers and students in the Brain Spiesman's lab, and what are their research areas?",
+        ),
+        (
+            "🔬 Research projects",
+            "What research projects are currently being conducted in the Brain Spiesman's lab?",
+        ),
+        (
+            "🌼 Bee science",
+            "Explain the ecological importance of bees and pollinators.",
+        ),
+        (
+            "📚 Scientific resources",
+            "What scientific topics are covered by the entomology knowledge base?",
+        ),
+        (
+            "🌎 Bee conservation",
+            "What are the major threats to bees and how can they be protected?",
+        ),
+    ]
+
+    for row_start in range(0, len(quick_actions), 3):
+        columns = st.columns(3)
+
+        for column, (button_label, query) in zip(
+            columns,
+            quick_actions[row_start:row_start + 3],
+        ):
+            with column:
+                if st.button(
+                    button_label,
+                    use_container_width=True,
+                    key=f"quick_{row_start}_{button_label}",
+                ):
+                    selected_suggestion = query
+
+
+# ============================================================
+# CONVERSATION HEADER
+# ============================================================
+
+st.html(
+    """
+    <div class="section-row">
+        <div class="section-title">Conversation</div>
+        <div class="section-caption">
+            Context-grounded responses
+        </div>
+    </div>
+    """
+)
+
+
+# ============================================================
+# DISPLAY CHAT HISTORY
+# ============================================================
+
+for message in st.session_state.messages:
+    role = message.get("role", "assistant")
+    content = message.get("content", "")
+    source = message.get("source")
+    elapsed_seconds = message.get("elapsed_seconds")
+
+    avatar = "🧑‍🔬" if role == "user" else "🐝"
+
+    with st.chat_message(role, avatar=avatar):
+        st.markdown(content)
+
+        if role == "assistant" and source:
+            render_answer_metadata(
+                source=source,
+                elapsed_seconds=elapsed_seconds,
+            )
+
+            render_pipeline(source)
+
+
+# ============================================================
+# CHAT INPUT
+# ============================================================
+
+typed_query = st.chat_input(
+    "Ask about BeeMachine, the lab, researchers, bees, or entomology..."
+)
+
+user_query = typed_query or selected_suggestion
+
+
+# ============================================================
+# PROCESS QUERY
+# ============================================================
 
 if user_query:
-    st.session_state["messages"].append({"role": "user", "content": user_query})
+    add_user_message(user_query)
 
-    with st.chat_message("user"):
-        st.write(user_query)
+    with st.chat_message("user", avatar="🧑‍🔬"):
+        st.markdown(user_query)
 
-    # 1. FIRST HANDLE GREETINGS
+    # --------------------------------------------------------
+    # GREETING HANDLER
+    # --------------------------------------------------------
+
     if is_greeting(user_query):
+        start_time = time.perf_counter()
+
         reply = greeting_response(user_query)
+        source = "greeting"
 
-        with st.chat_message("assistant"):
-            st.write(reply)
-            st.caption("Source: greeting")
+        elapsed_seconds = time.perf_counter() - start_time
 
-        st.session_state["messages"].append({"role": "assistant", "content": reply})
-        st.stop()
+        with st.chat_message("assistant", avatar="🐝"):
+            st.write_stream(stream_text(reply))
 
-    # 2. RUN HYBRID RAG PIPELINE
-    result = graph.invoke({
-        "query": user_query,
-        "context": "",
-        "answer": "",
-        "citations": [],
-    })
+            render_answer_metadata(
+                source=source,
+                elapsed_seconds=elapsed_seconds,
+            )
 
-    answer = result["answer"]
-    context = result["context"]
+        add_assistant_message(
+            content=reply,
+            source=source,
+            elapsed_seconds=elapsed_seconds,
+        )
 
-    with st.chat_message("assistant"):
-        st.write(answer)
-        st.caption(f"Source: {context}")
+    # --------------------------------------------------------
+    # HYBRID RAG PIPELINE
+    # --------------------------------------------------------
 
-    st.session_state["messages"].append({"role": "assistant", "content": answer})
+    else:
+        start_time = time.perf_counter()
 
+        with st.chat_message("assistant", avatar="🐝"):
+            try:
+                with st.status(
+                    "Searching the BeeMachine knowledge network...",
+                    expanded=True,
+                ) as status:
+                    st.write(
+                        "🏛️ Evaluating the laboratory knowledge base"
+                    )
+                    st.write(
+                        "📚 Evaluating scientific entomology resources"
+                    )
+                    st.write(
+                        "🌐 Preparing fallback retrieval when required"
+                    )
+                    st.write(
+                        "🧠 Synthesizing a context-grounded answer"
+                    )
+
+                    result = graph.invoke(
+                        {
+                            "query": user_query,
+                            "context": "",
+                            "answer": "",
+                            "citations": [],
+                        }
+                    )
+
+                    answer = result.get(
+                        "answer",
+                        "I could not generate a response.",
+                    )
+
+                    source = result.get(
+                        "context",
+                        "Hybrid RAG",
+                    )
+
+                    elapsed_seconds = (
+                        time.perf_counter() - start_time
+                    )
+
+                    status.update(
+                        label="Response ready",
+                        state="complete",
+                        expanded=False,
+                    )
+
+                st.write_stream(stream_text(answer))
+
+                render_answer_metadata(
+                    source=source,
+                    elapsed_seconds=elapsed_seconds,
+                )
+
+                render_pipeline(source)
+
+            except Exception as exc:
+                elapsed_seconds = (
+                    time.perf_counter() - start_time
+                )
+
+                answer = (
+                    "I encountered an error while searching the "
+                    "knowledge network. Please try again."
+                )
+
+                source = "System error"
+
+                st.error(answer)
+
+                # Keep during development. Remove in production.
+                st.caption(
+                    f"Technical details: {exc}"
+                )
+
+                render_answer_metadata(
+                    source=source,
+                    elapsed_seconds=elapsed_seconds,
+                )
+
+        add_assistant_message(
+            content=answer,
+            source=source,
+            elapsed_seconds=elapsed_seconds,
+        )
+
+    st.rerun()

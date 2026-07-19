@@ -3,6 +3,25 @@
 A Hybrid Retrieval-Augmented Generation (RAG) chatbot built using **LangGraph**, **LangChain**, **ChromaDB**, **Google Gemini**, **Wikipedia**, and **Google Search**. The chatbot was developed to provide researchers, students, and the general public with an intelligent assistant capable of answering questions about a research laboratory, its members, ongoing research, and bee-related topics.
 
 ---
+## 🎥 Demo
+
+<p align="center">
+  <img src="./Demo_1.gif" alt="BeeMachine AI Demo" width="900"/>
+</p>
+
+  ## ▶️ Full Demo 👉 [Watch the complete AI Assistant Demo](./Demo.mp4)
+
+
+## 📸 Screenshot
+
+<p align="center">
+
+<img src="./Application Screenshot.png" width="850"/>
+
+</p>
+
+---
+
 
 # Project Background
 
