@@ -1,6 +1,6 @@
 # AI Research Assistant using LangGraph
 
-A Hybrid Retrieval-Augmented Generation (RAG) chatbot built using **LangGraph**, **LangChain**, **ChromaDB**, **Google Gemini**, **Wikipedia**, and **Google Search**. The chatbot was developed to provide researchers, students, and the general public with an intelligent assistant capable of answering questions about a research laboratory, its members, ongoing research, and bee-related topics.
+A Hybrid Retrieval-Augmented Generation (RAG) assistant is developed to provide researchers, students, and the general public with an intelligent assistant capable of answering questions about a research laboratory, its members, ongoing research, and bee-related topics. This AI Assistant is built using **LangGraph**, **LangChain**, **ChromaDB**, **Google Gemini**, **Wikipedia**, and **Google Search**.
 
 ---
 ## Live Application
