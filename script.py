@@ -22,16 +22,9 @@ import google.generativeai as genai
 # ENVIRONMENT VARIABLES
 # ============================================================
 
-# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-# GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
-
-GOOGLE_API_KEY=""
-GOOGLE_CSE_ID=""
-
-# SERPAPI_KEY = os.getenv("SERPAPI_API_KEY")
-SERPAPI_KEY=""
-
-
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+GOOGLE_CSE_ID = st.secrets["GOOGLE_CSE_ID"]
+SERPAPI_KEY = st.secrets["SERPAPI_API_KEY"]
 
 
 
