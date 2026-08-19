@@ -8,8 +8,10 @@ from urllib.parse import quote
 from typing import TypedDict, List, Any
 
 from langgraph.graph import StateGraph, START, END
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+# from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_community.utilities import WikipediaAPIWrapper
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import SerpAPIWrapper
@@ -61,12 +63,46 @@ embeddings = HuggingFaceEmbeddings(model_name=EMBED_MODEL)
 # LOAD VECTOR DBs
 # ============================================================
 
-db1 = Chroma(persist_directory=DB1_PATH, embedding_function=embeddings)
-retriever1 = db1.as_retriever(search_kwargs={"k": 6})
+# db1 = Chroma(persist_directory=DB1_PATH, embedding_function=embeddings)
+# retriever1 = db1.as_retriever(search_kwargs={"k": 6})
 
-db2 = Chroma(persist_directory=DB2_PATH, embedding_function=embeddings)
-retriever2 = db2.as_retriever(search_kwargs={"k": 6})
+# db2 = Chroma(persist_directory=DB2_PATH, embedding_function=embeddings)
+# retriever2 = db2.as_retriever(search_kwargs={"k": 6})
 
+@st.cache_resource
+def load_embeddings():
+    return HuggingFaceEmbeddings(
+        model_name="BAAI/bge-small-en-v1.5"
+    )
+
+
+@st.cache_resource
+def load_vectorstores(_embeddings):
+
+    db1 = Chroma(
+        persist_directory=DB1_PATH,
+        embedding_function=_embeddings
+    )
+
+    db2 = Chroma(
+        persist_directory=DB2_PATH,
+        embedding_function=_embeddings
+    )
+
+    return db1, db2
+
+
+embeddings = load_embeddings()
+
+db1, db2 = load_vectorstores(embeddings)
+
+retriever1 = db1.as_retriever(
+    search_kwargs={"k": 6}
+)
+
+retriever2 = db2.as_retriever(
+    search_kwargs={"k": 6}
+)
 
 # ============================================================
 # UTILITY FUNCTIONS
