@@ -23,17 +23,24 @@ import google.generativeai as genai
 # ============================================================
 # ENVIRONMENT VARIABLES
 # ============================================================
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+SERPAPI_KEY = os.getenv("SERPAPI_API_KEY")
 
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-GOOGLE_CSE_ID = st.secrets["GOOGLE_CSE_ID"]
-SERPAPI_KEY = st.secrets["SERPAPI_API_KEY"]
 
+
+# GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+# GOOGLE_CSE_ID = st.secrets["GOOGLE_CSE_ID"]
+# SERPAPI_KEY = st.secrets["SERPAPI_API_KEY"]
 
 
 if not GOOGLE_API_KEY:
     st.error("Missing GOOGLE_API_KEY environment variable!")
     st.stop()
 
+if not GOOGLE_CSE_ID:
+    st.error("Missing GOOGLE_CSE_ID!")
+    st.stop()
 if not SERPAPI_KEY:
     st.error("Missing SERPAPI_API_KEY environment variable!")
     st.stop()
