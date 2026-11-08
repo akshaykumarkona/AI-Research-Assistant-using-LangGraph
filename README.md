@@ -60,18 +60,18 @@ The chatbot follows a hierarchical Hybrid RAG pipeline.
           Small Laboratory Knowledge Base
          (Lab Website, People & Projects)
                             │
-                 Information Found?
+                Relevant Information Found?
                  ├──── Yes ───────────────┐
                  ▼ No                     │
       Large Entomology Knowledge Base     │
    (Books, Agriculture & Bee Resources)   │
                             │             │
-                 Information Found?       │
+        Relevant Information Found?       │
                  ├──── Yes ───────────────┤
                  ▼ No                     │
                   Wikipedia Search        │
                             │             │
-                 Information Found?       │
+        Relevant Information Found?       │
                  ├──── Yes ───────────────┤
                  ▼ No                     │
               Google Search (SerpAPI)     │
