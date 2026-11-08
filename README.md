@@ -5,18 +5,18 @@ A Hybrid Retrieval-Augmented Generation (RAG) assistant is developed to provide 
 ---
 ## Live Application
 
-🌐 **[Try the Deployed Application HERE](https://ai-research-chatbot-using-langgraph.streamlit.app/)**
+**[Try the Deployed Application HERE](https://ai-research-chatbot-using-langgraph.streamlit.app/)**
 
 ---
 
 
-## 🎥 Demo
+## Short Demo
 
 <p align="center">
   <img src="./Demo_1.gif" alt="BeeMachine AI Demo" width="900"/>
 </p>
 
-  ## ▶️ Full Demo 👉 [Watch the complete AI Assistant Demo](./Demo.mp4)
+  ## Full Demo 👉 [Watch the complete AI Assistant Demo](./Demo.mp4)
 
 
 ## 📸 Screenshot
